@@ -3,6 +3,7 @@
  * @property {string} id
  * @property {string} title
  * @property {string} discountPercentage
+ * @property {number} price
  */
 
 /**
@@ -55,11 +56,105 @@ function pintarTaulaProductes(productes) {
   document.getElementById("contenidor").innerHTML = html;
 }
 
+/**
+ * html = `<div><b>Títol</b><textarea id="textareaTitol" name="textareaTitol" rows="1" cols="50"></textarea></div>`;
+    html += `<div><b>Descompte</b><textarea id="textareaDescompte" name="textareaDescompte" rows="1" cols="50"></textarea></div>`;
+    html += `<div><button id="aplicarFiltre" onclick="pintarFiltre()">Filtra</button></div>`;
+
+    <label>Títol</label><input type="text" id="titol">
+    <label>Descompte</label><input type="text" id="descompte">
+ */
+
+function pintarControlsFiltre() {
+  let html = "";
+  if (!mostrarFiltre) {
+    html = `<div><label>Títol</label><input type="text" id="txtTitol"></div>`;
+    html += `<div><label>Descompte</label><input type="text" id="txtDescompte"></div>`;
+    html += `<div><button id="btnAplicarFiltre">Filtra</button></div>`;
+    document.getElementById("divFiltres").innerHTML = html;
+    mostrarFiltre = true;
+
+    //Afegim l'event
+    document.getElementById("btnAplicarFiltre").onclick = () => {
+      let txtTitol = document.getElementById("txtTitol");
+      let txtDescompte = document.getElementById("txtDescompte");
+      filtrar(txtTitol.value, txtDescompte.value);
+    };
+  } else {
+    html = "";
+    document.getElementById("divFiltres").innerHTML = html;
+    mostrarFiltre = false;
+  }
+  // document.getElementById("divFiltres").innerHTML = html;
+}
+
+function filtrar(txtTitol, txtDescompte) {
+  console.clear();
+  fetch("https://dummyjson.com/products")
+    .then((res) => res.json())
+    .then((objecte) => {
+      let productes = objecte.products;
+      let productesFiltrats = [];
+      if (txtTitol != "" && txtDescompte != "") {
+        let descompteFiltre = Number(txtDescompte);
+        productes.forEach(
+          /**
+           * @param {Producte} producte
+           */
+          (producte) => {
+            let descompteProducte = Number(producte.discountPercentage);
+            console.log("Iniciem filtre:");
+            if (
+              producte.title == txtTitol &&
+              descompteProducte < descompteFiltre
+            ) {
+              productesFiltrats.push(producte);
+              console.log(producte);
+            }
+          },
+        );
+        pintarTaulaProductes(productesFiltrats);
+      } else if (txtTitol != "" && txtDescompte == "") {
+        productes.forEach(
+          /**
+           * @param {Producte} producte
+           */
+          (producte) => {
+            console.log("Iniciem filtre:");
+            if (producte.title == txtTitol) {
+              productesFiltrats.push(producte);
+              console.log(producte);
+            }
+          },
+        );
+        pintarTaulaProductes(productesFiltrats);
+      } else if (txtTitol == "" && txtDescompte != "") {
+        let descompteFiltre = Number(txtDescompte);
+        productes.forEach(
+          /**
+           * @param {Producte} producte
+           */
+          (producte) => {
+            console.log("Iniciem filtre:");
+            let descompteProducte = Number(producte.discountPercentage);
+            if (descompteProducte < descompteFiltre) {
+              productesFiltrats.push(producte);
+              console.log(producte);
+            }
+          },
+        );
+        pintarTaulaProductes(productesFiltrats);
+      } else {
+        pintarTaulaProductes(productes);
+      }
+    });
+}
+
 /** MAIN */
 
 let mostrarFiltre = false;
 
-pintarFiltre();
+// pintarFiltre();
 
 fetch("https://dummyjson.com/products")
   .then((res) => res.json())
@@ -86,3 +181,14 @@ fetch("https://dummyjson.com/products")
     }
     pintarTaulaProductes(productes);
   });
+
+//elements
+document.getElementById("btnMostrarFiltre").onclick = (ev) => {
+  pintarControlsFiltre();
+
+  let boto = ev.target;
+  boto.textContent = "Mostrar Filtre";
+  if (mostrarFiltre) {
+    boto.textContent = "Amagar Filtre";
+  }
+};
